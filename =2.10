@@ -1,0 +1,2 @@
+Requirement already satisfied: jinja2 in /home/christos/.virtualenvs/myenv/lib/python3.6/site-packages (2.8.1)
+Requirement already satisfied: MarkupSafe in /home/christos/.virtualenvs/myenv/lib/python3.6/site-packages (from jinja2) (1.1.1)

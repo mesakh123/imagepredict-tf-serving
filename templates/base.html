@@ -1,0 +1,57 @@
+
+{% load static %}
+<!DOCTYPE html>
+{%load extras %}
+<html>
+<head>
+<title>敷料追蹤系統</title>
+<!-- for-mobile-apps -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+<script src="{% static "js/jquery-3.4.1.min.js" %}"></script>
+
+
+<link rel="stylesheet" href="{% static 'jquery/jquery-ui.css' %}" >
+
+<script src="{% static 'jquery/jquery.js' %}"></script>
+<script src="{% static 'jquery/jquery-ui.js' %}"></script>
+ <link rel="shortcut icon" href="/media/icon/favicon.png">
+<script src="{% static 'js/bootstrap.bundle.js' %}"></script>
+<script src="{% static 'js/barcode-reader.min.js' %}"></script>
+
+
+
+<link  rel="stylesheet" href="{% static "css/style.css" %}" />
+<link  rel="stylesheet" href="{% static "css/bootstrap.min.css" %}" />
+
+<script src="{% static "js/bootstrap.bundle.js" %}"></script>
+
+<link  rel="stylesheet"  href="{% static "css/font-awesome.css" %}"/>
+<!--[if IE]>
+  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+<!-- remove this if you use Modernizr -->
+<script>(function(e,t,n){var r=e.querySelectorAll("html")[0];r.className=r.className.replace(/(^|\s)no-js(\s|$)/,"$1js$2")})(document,window,0);</script>
+</head>
+<body >
+
+    <header class="container navbar-default sticky-top col-12" style="background-color: #e3f2fd;">
+    {%block header%}
+    {%endblock%}
+    </header>
+    {%block content%}
+    {%endblock%}
+
+
+
+    <footer class="bg-info">
+      <div class="footer-copyright text-center py-3 text-white">
+
+      </div>
+    </footer>
+</body>
+
+</html>
