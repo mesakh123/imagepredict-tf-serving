@@ -47,7 +47,8 @@
                   <img class="card-img-top" src="media/{{file}}" alt="Card image cap">
                   <div class="text-center">
                     <span> Infection : {{result1}} </span><br>
-                    <span> Necrotic Tissue : {{result2}} </span>
+                    <span> Necrotic Tissue : {{result2}} </span><br>
+		    <span> Suggestions : {{suggestions|safe}}</span>
                   </div>
                   {%endif%}
                   <input type="file" name="myfile" id="file-5" class="inputfile inputfile-4" data-multiple-caption="{count} files selected" accept=".png, .jpg, .jpeg" />
