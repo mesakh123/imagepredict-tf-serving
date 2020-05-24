@@ -40,6 +40,7 @@ import cv2
 import numpy as np
 import caffe
 import io
+import sys
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MEDIA_DIR = os.path.join(BASE_DIR,"media")
 # Create your views here.
@@ -70,35 +71,39 @@ def image_save(im = None,str_time="default"):
     return stats
 
 
+
 def predict(data_type = "",file=""):
     caffe_root = os.path.join(BASE_DIR,data_type+"/")
     deploy_file = caffe_root+r'deploy.prototxt'
     model_file = caffe_root+r'model.caffemodel'
     net = caffe.Net(deploy_file, model_file, caffe.TEST)
     mu = np.load(os.path.join(BASE_DIR,r'imagenet/ilsvrc_2012_mean.npy'))
-    mu_mean =  mu.mean(axis = 1).mean(axis = 1)
+    mu =  mu.mean(axis = 1).mean(axis = 1)
     transform = caffe.io.Transformer({'data' : net.blobs['data'].data.shape})
     transform.set_transpose('data', (2, 0, 1))
     transform.set_raw_scale('data', 255)
     transform.set_channel_swap('data', (2, 1, 0))
-    transform.set_mean('data', mu_mean)
+    transform.set_mean('data', mu)
 
     imagenet_labels_filename = caffe_root+"/"+data_type +r'_label.txt'
 
     labels = np.loadtxt(imagenet_labels_filename, str, delimiter='\t')
     labels = labels.tolist()
-
-
+	
     input_image = caffe.io.load_image(file,True)
 
-    trans_image = transform.preprocess('data', input_image)
+    #input_image = transform.preprocess('data', input_image)
+    #print(input_image)
     net.blobs['data'].reshape = (1, 3, 224, 224)
 
-    net.blobs['data'].data[0:, :] = trans_image
+    net.blobs['data'].data[...] = transform.preprocess('data', input_image)
     output = net.forward()
-    prediction = output['prob'][0]
-    result_predict = str(labels[prediction.argmax()])
+    result_predict = output['prob'][0]
+    result_predict = str(labels[result_predict.argmax()])
+    
     return result_predict;
+
+
 
 def predict_init(file=None):
     result1 = predict("infection",file)
@@ -122,11 +127,12 @@ def predict_init(file=None):
     elif result1 == "YES" and result2 == "HIGH":
         suggestions = "此傷口目前有感染的疑慮，而且還有大量的壞死組織。<br><br>建議即刻安排整形外科門診或是急診就診，醫師可能會視情況做抗生素的開立以及清創。<br>在看診之前可使用具殺菌能力的抗生素藥膏，並且按照仿單的指示經由護理人員的指導下做更換。<br><br>抗生素藥膏: <超連結>"
 
-
-    print(result1)
-    print(result2)
-    print(suggestions)
-    print(suggestions.encode('utf-8'))
+    elif result1== "UNDETECTED" and result2=="UNDETECTED":
+        suggestions = "此照片無法偵測到傷口資訊"
+    #print(result1)
+    #print(result2)
+    #print(suggestions)
+    #print(suggestions.encode('utf-8'))
     
     return result1,result2, suggestions
 
@@ -140,6 +146,5 @@ def index(request):
             image_save(files,str_time)
             file_folder = os.path.join(MEDIA_DIR,str_time+'.jpg')
             result1 , result2, suggestions = predict_init(file_folder)
-            file = str_time+".jpg"
-            print(file)
+            file_name= str_time+".jpg" 
     return render(request,"index.html",locals())
