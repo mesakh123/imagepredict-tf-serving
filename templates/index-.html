@@ -6,9 +6,9 @@
 {%block header%}
 
 <nav class="navbar navbar-expand-xl navbar-light" role="navigation" >
-  <div class="container-fluid" >
+  <div class="container" >
           <a class="navbar-brand" href="/">
-            <img src="{% static "images/logo.png" %}" alt="logo">
+            <img src="{% static "images/logo.png" %}" class="img-fluid" alt="logo"  style="min-width:225px;min-height:55px;max-width:300px;max-height:80px;" >
           </a>
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false"
              aria-label="Toggle navigation">
@@ -34,13 +34,13 @@
 <link rel="stylesheet" type="text/css" href="{% static 'css/demo.css' %}" />
 <link rel="stylesheet" type="text/css" href="{% static 'css/component.css' %}" />
 
-<div class="container main mt-2">
+<div class="container mt-2">
     <form method="POST" action="" enctype="multipart/form-data">
       {%csrf_token%}
       <div class="card-deck mb-3 text-center">
               <div class="card mb-4 col-12">
                 <div class="card-header">
-                  <h4 class="my-0 font-weight-normal">褥瘡傷口分析系統</h4>
+                  <h4 class="my-0 font-weight-normal">傷口分析系統</h4>
                 </div>
                 <div class="card-body text-center">
                   {% if file_folder %}
@@ -48,7 +48,7 @@
                   <div class="text-center">
                     <span> Infection : {{result1}} </span><br>
                     <span> Necrotic Tissue : {{result2}} </span><br>
-	                  <span> Suggestions : {{suggestions|safe}}</span>
+		    <span> Suggestions : {{suggestions|safe}}</span>
                   </div>
                   {%endif%}
                   <input type="file" name="myfile" id="file-5" class="inputfile inputfile-4" data-multiple-caption="{count} files selected" accept=".png, .jpg, .jpeg" />
@@ -63,7 +63,7 @@
                 </div>
                 <div class="text-center mb-2">
 
-                  <input type="submit" class="btn " value="上傳">
+                  <input type="submit" class="btn btn-primary" value="上傳">
                 </div>
               </div>
 

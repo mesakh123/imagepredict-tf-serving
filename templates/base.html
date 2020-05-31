@@ -1,15 +1,16 @@
-{% load i18n %} 
+
 {% load static %}
 <!DOCTYPE html>
 {%load extras %}
 <html>
 <head>
-<title>傷口分析系統</title>
-<!-- for-mobile-apps -->
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>褥瘡傷口分析暨敷料追蹤系統</title>
 
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<!-- for-mobile-apps
 <script src="{% static "js/jquery-3.4.1.min.js" %}"></script>
 
 
@@ -18,25 +19,42 @@
 <script src="{% static 'jquery/jquery.js' %}"></script>
 <script src="{% static 'jquery/jquery-ui.js' %}"></script>
  <link rel="shortcut icon" href="/media/icon/favicon.png">
-<script src="{% static 'js/bootstrap.bundle.js' %}"></script>
-<script src="{% static 'js/barcode-reader.min.js' %}"></script>
+ <script src="{% static 'js/barcode-reader.min.js' %}"></script>
+ <link  rel="stylesheet" href="{% static "css/bootstrap.min.css" %}"
+
+ />
+
+  />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC&amp;display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+
+ -->
+
+ <script src="{% static "js/jquery-3.4.1.min.js" %}"></script>
+ <link  rel="stylesheet" href="{% static "css/bootstrap.min.css" %}" />
+<script src="{% static "js/bootstrap.bundle.js" %}"></script>
+
+<link  rel="stylesheet"  href="{% static "css/font-awesome.css" %}"/>
+
+<link rel="stylesheet" type="text/css" href="{% static 'css/normalize.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/demo.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'css/component.css' %}" />
+<meta charset="utf-8">
+
 
 
 
 <link  rel="stylesheet" href="{% static "css/style.css" %}" />
-<link  rel="stylesheet" href="{% static "css/bootstrap.min.css" %}" />
 
-<script src="{% static "js/bootstrap.bundle.js" %}"></script>
-
-<link  rel="stylesheet"  href="{% static "css/font-awesome.css" %}"/>
 <!--[if IE]>
   <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
 <![endif]-->
 
 <!-- remove this if you use Modernizr -->
-<script>(function(e,t,n){var r=e.querySelectorAll("html")[0];r.className=r.className.replace(/(^|\s)no-js(\s|$)/,"$1js$2")})(document,window,0);</script>
 </head>
 <body >
+<!--<button type="button" class="mobile-nav-toggle d-lg-none"><i class="icofont-navigation-menu"></i></button>-->
 
     <header class="container navbar-default sticky-top col-12" style="background-color: #e3f2fd;">
     {%block header%}
@@ -47,10 +65,10 @@
 
 
 
-    <footer class="bg-info">
-      <div class="footer-copyright text-center py-3 text-white">
-
-      </div>
+    <footer class="fixed-bottom">
+          <div class="footer-copyright text-center py-3 mx-2 text-white">
+    	<p>本人工智慧程式屬於輔大醫院、台大醫院以及台大生醫電資所擁有。 </p>
+          </div>
     </footer>
 </body>
 

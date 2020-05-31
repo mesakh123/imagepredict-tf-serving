@@ -92,20 +92,20 @@
 /* style 4 */
 
 .inputfile-4 + label {
-    color: #d3394c;
+    color: #5A5A;
 }
 
 .inputfile-4:focus + label,
 .inputfile-4.has-focus + label,
 .inputfile-4 + label:hover {
-    color: #722040;
+    color: #5A5;
 }
 
 .inputfile-4 + label figure {
     width: 100px;
     height: 100px;
     border-radius: 50%;
-    background-color: #d3394c;
+    background-color: #5A5A;
     display: block;
     padding: 20px;
     margin: 0 auto 10px;
@@ -114,7 +114,7 @@
 .inputfile-4:focus + label figure,
 .inputfile-4.has-focus + label figure,
 .inputfile-4 + label:hover figure {
-    background-color: #722040;
+    background-color: #5A5;
 }
 
 .inputfile-4 + label svg {
@@ -237,3 +237,4 @@
 		display: block;
 	}
 }
+

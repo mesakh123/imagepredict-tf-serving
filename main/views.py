@@ -127,7 +127,7 @@ def predict_init(file=None):
     elif result1 == "YES" and result2 == "HIGH":
         suggestions = "此傷口目前有感染的疑慮，而且還有大量的壞死組織。<br><br>建議即刻安排整形外科門診或是急診就診，醫師可能會視情況做抗生素的開立以及清創。<br>在看診之前可使用具殺菌能力的抗生素藥膏，並且按照仿單的指示經由護理人員的指導下做更換。"
 
-    elif result1== "UNDETECTED" and result2=="UNDETECTED":
+    elif (result1== "UNDETECTED" and result2=="UNDETECTED") or (result1=="NO" and result2=="UNDETECTED" ) or (result1=="UNDETECTED" and result2=="NONE"):
         suggestions = "此照片無法偵測到傷口資訊"
     #print(result1)
     #print(result2)
