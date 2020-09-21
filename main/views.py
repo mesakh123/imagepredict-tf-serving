@@ -41,13 +41,19 @@ import numpy as np
 import caffe
 import io
 import sys
-from .inferencing.saved_model_inference import detect_mask_single_image_using_grpc
+
+
+
+
+#from .inferencing.saved_model_inference import detect_mask_single_image_using_grpc
+
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MEDIA_DIR = os.path.join(BASE_DIR,"media")
 # Create your views here.
-mu = np.load(os.path.join(BASE_DIR,r'imagenet/ilsvrc_2012_mean.npy'))
-mu =  mu.mean(axis = 1).mean(axis = 1)
+#mu = np.load(os.path.join(BASE_DIR,r'imagenet/ilsvrc_2012_mean.npy'))
+#mu =  mu.mean(axis = 1).mean(axis = 1)
 
 def image_save(im = None,str_time="default"):
     if im is None : return False
@@ -64,17 +70,25 @@ def image_save(im = None,str_time="default"):
     """
 
     image = Image.open(io.BytesIO(im))
+    file_folder = os.path.join(MEDIA_DIR,str_time+'-ori.jpg')
+    image_ori =  image.copy()
+    image_ori = image_ori.convert("RGB")
+    stats = image_ori.save(file_folder)
+    print("Image ori ",stats)
+
     width_resize = 224
 
     #save original size
-    file_folder = os.path.join(MEDIA_DIR,str_time+'-ori.jpg')
-    image = image.convert("RGB")
-    stats = image.save(file_folder)
+    #file_folder = os.path.join(MEDIA_DIR,str_time+'-ori.jpg')
+    #image = image.convert("RGB")
+    #stats = image.save(file_folder)
 
     #save resized size for caffe
     wpercent = (width_resize/float(image.size[0]))
     height_resize  = int(float(image.size[1])*float(wpercent))
     file_folder = os.path.join(MEDIA_DIR,str_time+'.jpg')
+    stats = image.save(file_folder)
+    image = image.convert("RGB")
     stats = image.save(file_folder)
     print("stats ",stats)
     return stats,image
@@ -85,6 +99,9 @@ def predict(data_type = "",file=""):
     deploy_file = caffe_root+r'deploy.prototxt'
     model_file = caffe_root+r'model.caffemodel'
     net = caffe.Net(deploy_file, model_file, caffe.TEST)
+    
+    mu = np.load(os.path.join(BASE_DIR,r'imagenet/ilsvrc_2012_mean.npy'))
+    mu_mean =  mu.mean(axis = 1).mean(axis = 1)
 
     transform = caffe.io.Transformer({'data' : net.blobs['data'].data.shape})
     transform.set_transpose('data', (2, 0, 1))
@@ -112,7 +129,7 @@ def predict(data_type = "",file=""):
 
 
 
-def predict_init(file=None):
+def predict_init(file=None,str_time="default"):
     result1 = predict("infection",file)
     result2 = predict("necrotic",file)
     suggestions = ""
@@ -141,8 +158,11 @@ def predict_init(file=None):
     #print(suggestions)
     #print(suggestions.encode('utf-8'))
     
-    image = np.asarray(image,dtype=np.float32)
-    result_mrcnn = detect_mask_single_image_using_grpc(image,str_time)
+    #image = cv2.imread(file,1)
+    #file_folder = os.path.join(MEDIA_DIR,str_time+'-ori.jpg')
+    #image = cv2.imread(file_folder,1)
+    #image = cv2.cvtColor(image,cv2.COLOR_BG
+    #result_mrcnn = detect_mask_single_image_using_grpc(image,str_time)
    
     return result1,result2, suggestions
 
@@ -153,8 +173,14 @@ def index(request):
         str_time = randomString(8)
         if 'myfile' in request.FILES:
             files = request.FILES.get('myfile').read()
-            _, image = image_save(files,str_time)
+            image_save(files,str_time)
             file_folder = os.path.join(MEDIA_DIR,str_time+'.jpg')
-            result1 , result2, suggestions = predict_init(file_folder)
+            result1 , result2, suggestions = predict_init(file_folder,str_time)
+            file_folder = os.path.join(MEDIA_DIR,str_time+'-ori.jpg')
+            image = cv2.imread(file_folder,1)
+            image = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
+            print("mask rcnn starts here")
+            result_mrcnn = detect_mask_single_image_using_grpc(image,str_time)
+
             file_name= str_time+".jpg" 
     return render(request,"index.html",locals())
