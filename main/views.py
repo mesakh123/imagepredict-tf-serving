@@ -44,8 +44,7 @@ import sys
 
 
 
-
-#from .inferencing.saved_model_inference import detect_mask_single_image_using_grpc
+from .inferencing.saved_model_inference import detect_mask_single_image_using_grpc
 
 
 
@@ -99,7 +98,7 @@ def predict(data_type = "",file=""):
     deploy_file = caffe_root+r'deploy.prototxt'
     model_file = caffe_root+r'model.caffemodel'
     net = caffe.Net(deploy_file, model_file, caffe.TEST)
-    
+
     mu = np.load(os.path.join(BASE_DIR,r'imagenet/ilsvrc_2012_mean.npy'))
     mu_mean =  mu.mean(axis = 1).mean(axis = 1)
 
@@ -113,7 +112,7 @@ def predict(data_type = "",file=""):
 
     labels = np.loadtxt(imagenet_labels_filename, str, delimiter='\t')
     labels = labels.tolist()
-	
+
     input_image = caffe.io.load_image(file,True)
 
     #input_image = transform.preprocess('data', input_image)
@@ -124,7 +123,7 @@ def predict(data_type = "",file=""):
     output = net.forward()
     result_predict = output['prob'][0]
     result_predict = str(labels[result_predict.argmax()])
-    
+
     return result_predict;
 
 
@@ -157,13 +156,13 @@ def predict_init(file=None,str_time="default"):
     #print(result2)
     #print(suggestions)
     #print(suggestions.encode('utf-8'))
-    
+
     #image = cv2.imread(file,1)
     #file_folder = os.path.join(MEDIA_DIR,str_time+'-ori.jpg')
     #image = cv2.imread(file_folder,1)
     #image = cv2.cvtColor(image,cv2.COLOR_BG
     #result_mrcnn = detect_mask_single_image_using_grpc(image,str_time)
-   
+
     return result1,result2, suggestions
 
 
@@ -182,5 +181,5 @@ def index(request):
             print("mask rcnn starts here")
             result_mrcnn = detect_mask_single_image_using_grpc(image,str_time)
 
-            file_name= str_time+".jpg" 
+            file_name= str_time+".jpg"
     return render(request,"index.html",locals())

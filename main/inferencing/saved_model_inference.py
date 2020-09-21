@@ -47,21 +47,14 @@ def detect_mask_single_image_using_grpc(image,str_time):
     anchors = preprocess_obj.get_anchors(image_shape)
     anchors = np.broadcast_to(anchors, (images.shape[0],) + anchors.shape)
 
-    print("Molded image type",type(molded_images))
-    print("Molded image shape",molded_images.shape)
-    test_molded= molded_images.copy()
-    cv2.imwrite('test_molded.png',test_molded[0])
 
-
-    print("image_metas type",type(image_metas))
-    print("image_metas shape",image_metas.shape)
 
     request.inputs[saved_model_config.INPUT_IMAGE].CopyFrom(
-        tf.contrib.util.make_tensor_proto(molded_images, shape=molded_images.shape))
+        tf.make_tensor_proto(molded_images, shape=molded_images.shape))
     request.inputs[saved_model_config.INPUT_IMAGE_META].CopyFrom(
-        tf.contrib.util.make_tensor_proto(image_metas, shape=image_metas.shape))
+        tf.make_tensor_proto(image_metas, shape=image_metas.shape))
     request.inputs[saved_model_config.INPUT_ANCHORS].CopyFrom(
-        tf.contrib.util.make_tensor_proto(anchors, shape=anchors.shape))
+        tf.make_tensor_proto(anchors, shape=anchors.shape))
 
     result = stub.Predict(request, 10.0)
     result_dict = preprocess_obj.result_to_dict(images, molded_images, windows, result)[0]
