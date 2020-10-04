@@ -41,8 +41,8 @@ import numpy as np
 import caffe
 import io
 import sys
-
-
+from .views_utils import *
+from .mrcnn import visualize
 
 from .inferencing.saved_model_inference import detect_mask_single_image_using_grpc
 
@@ -54,116 +54,6 @@ MEDIA_DIR = os.path.join(BASE_DIR,"media")
 #mu = np.load(os.path.join(BASE_DIR,r'imagenet/ilsvrc_2012_mean.npy'))
 #mu =  mu.mean(axis = 1).mean(axis = 1)
 
-def image_save(im = None,str_time="default"):
-    if im is None : return False
-    """
-    image = cv2.imdecode(np.frombuffer(im, np.uint8), -1)
-    width_resize = 224
-    wpercent = (width_resize/float(image.shape[1]))
-    height_resize  = int(float(image.shape[0])*float(wpercent))
-    image = cv2.resize(image,(width_resize,height_resize))
-    #image = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
-    file_folder = os.path.join(MEDIA_DIR,str_time+'.jpg')
-    stats = cv2.imwrite(file_folder,image)
-    print("Stats " , stats)
-    """
-
-    image = Image.open(io.BytesIO(im))
-    file_folder = os.path.join(MEDIA_DIR,str_time+'-ori.jpg')
-    image_ori =  image.copy()
-    image_ori = image_ori.convert("RGB")
-    stats = image_ori.save(file_folder)
-    print("Image ori ",stats)
-
-    width_resize = 224
-
-    #save original size
-    #file_folder = os.path.join(MEDIA_DIR,str_time+'-ori.jpg')
-    #image = image.convert("RGB")
-    #stats = image.save(file_folder)
-
-    #save resized size for caffe
-    wpercent = (width_resize/float(image.size[0]))
-    height_resize  = int(float(image.size[1])*float(wpercent))
-    file_folder = os.path.join(MEDIA_DIR,str_time+'.jpg')
-    image = image.convert("RGB")
-    stats = image.save(file_folder)
-    print("stats ",stats)
-    return stats,image
-
-
-def predict(data_type = "",file=""):
-    caffe_root = os.path.join(BASE_DIR,data_type+"/")
-    deploy_file = caffe_root+r'deploy.prototxt'
-    model_file = caffe_root+r'model.caffemodel'
-    net = caffe.Net(deploy_file, model_file, caffe.TEST)
-
-    mu = np.load(os.path.join(BASE_DIR,r'imagenet/ilsvrc_2012_mean.npy'))
-    mu_mean =  mu.mean(axis = 1).mean(axis = 1)
-
-    transform = caffe.io.Transformer({'data' : net.blobs['data'].data.shape})
-    transform.set_transpose('data', (2, 0, 1))
-    transform.set_raw_scale('data', 255)
-    transform.set_channel_swap('data', (2, 1, 0))
-    transform.set_mean('data', mu)
-
-    imagenet_labels_filename = caffe_root+"/"+data_type +r'_label.txt'
-
-    labels = np.loadtxt(imagenet_labels_filename, str, delimiter='\t')
-    labels = labels.tolist()
-
-    input_image = caffe.io.load_image(file,True)
-
-    #input_image = transform.preprocess('data', input_image)
-    #print(input_image)
-    net.blobs['data'].reshape = (1, 3, 224, 224)
-
-    net.blobs['data'].data[...] = transform.preprocess('data', input_image)
-    output = net.forward()
-    result_predict = output['prob'][0]
-    result_predict = str(labels[result_predict.argmax()])
-
-    return result_predict;
-
-
-
-def predict_init(file=None,str_time="default"):
-    result1 = predict("infection",file)
-    result2 = predict("necrotic",file)
-    suggestions = ""
-    if result1 == "NO" and result2 == "NONE":
-        suggestions = "目前此傷口沒有明顯的感染，壞死組織也很少，傷口屬於穩定恢復期。<br>建議可以使用親水性的現代敷料，或者是加速癒合的主動型敷料，按照產品指示的頻率做更換，如果傷口有滲液有變多或是變臭的情形，請再次使用本傷口判定系統，或者可以至大醫院整形外科門診就診。"
-
-    elif result1 == "NO" and result2 == "MEDIUM":
-        suggestions = "目前此傷口沒有明顯的感染，但有少量的壞死組織。<br>建議可以安排常規整形外科門診就診，再請醫師做評估，可能會做小範圍的清創或使用具清創能力的軟膏或水凝膠換藥。"
-
-    elif result1 == "NO" and result2 == "HIGH":
-        suggestions = "目前此傷口雖然沒有明顯的感染，但有大量的壞死組織。<br>建議安排整形外科門診就診，再請醫師做評估，可能會做大範圍的清創或是安排清創手術。<br><br>在看診之前可使用具殺菌能力的抗生素藥膏，並且按照仿單的指示經由護理人員的指導下做更換。"
-
-    elif result1 == "YES" and result2 == "NONE":
-        suggestions = "此傷口目前有感染的疑慮，雖然沒有明顯的壞死組織，但建議還是安排整形外科門診就診，醫師可能會視情況做抗生素的開立。<br>在看診之前可使用具殺菌能力的抗生素藥膏，並且按照仿單的指示經由護理人員的指導下做更換。"
-
-    elif result1 == "YES" and result2 == "MEDIUM":
-        suggestions = "此傷口目前有感染的疑慮，而且有少量至中量的壞死組織。<br>建議安排整形外科門診就診，醫師可能會視情況做抗生素的開立以及清創。<br>在看診之前可使用具殺菌能力的抗生素藥膏，並且按照仿單的指示經由護理人員的指導下做更換。"
-
-    elif result1 == "YES" and result2 == "HIGH":
-        suggestions = "此傷口目前有感染的疑慮，而且還有大量的壞死組織。<br><br>建議即刻安排整形外科門診或是急診就診，醫師可能會視情況做抗生素的開立以及清創。<br>在看診之前可使用具殺菌能力的抗生素藥膏，並且按照仿單的指示經由護理人員的指導下做更換。"
-
-    elif (result1== "UNDETECTED" and result2=="UNDETECTED") or (result1=="NO" and result2=="UNDETECTED" ) or (result1=="UNDETECTED" and result2=="NONE"):
-        suggestions = "此照片無法偵測到傷口資訊"
-    #print(result1)
-    #print(result2)
-    #print(suggestions)
-    #print(suggestions.encode('utf-8'))
-
-    #image = cv2.imread(file,1)
-    #file_folder = os.path.join(MEDIA_DIR,str_time+'-ori.jpg')
-    #image = cv2.imread(file_folder,1)
-    #image = cv2.cvtColor(image,cv2.COLOR_BG
-    #result_mrcnn = detect_mask_single_image_using_grpc(image,str_time)
-
-    return result1,result2, suggestions
-
 
 
 def index(request):
@@ -171,14 +61,27 @@ def index(request):
         str_time = randomString(8)
         if 'myfile' in request.FILES:
             files = request.FILES.get('myfile').read()
-            image_save(files,str_time)
-            file_folder = os.path.join(MEDIA_DIR,str_time+'.jpg')
-            result1 , result2, suggestions = predict_init(file_folder,str_time)
-            file_folder = os.path.join(MEDIA_DIR,str_time+'-ori.jpg')
-            image = cv2.imread(file_folder,1)
-            image = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
-            print("mask rcnn starts here")
-            result_mrcnn = detect_mask_single_image_using_grpc(image,str_time)
+            stats, image = image_save(files,str_time)
+            opencv_image = np.array(image).copy()
+            result = detect_mask_single_image_using_grpc(opencv_image,str_time)
 
+            ori_file_folder = os.path.join(MEDIA_DIR,str_time+'.jpg')
+            cropped_file_folder = None
             file_name= str_time+".jpg"
+            if result:
+                cropped_file_folder =  os.path.join(MEDIA_DIR,str_time+'-cropped.jpg')
+
+                bounding_box = result['rois']
+                mask = r['mask'][...,0]
+                bounding_box,mask = process_bounding_mask(bounding_box,mask)
+                img_mrcnn = visualize.save_image(opencv_image, file_folder, bounding_box, mask,
+                                    result['class'], result['scores'], class_names,scores_thresh=0.85)
+                x1,y1,x2,y2 = bounding_box
+                opencv_image = opencv_image[y1:y2,x1:x2]
+                cv2.imwrite(cropped_file_folder,opencv_image)
+                cv2.imwrite(ori_file_folder,img_mrcnn)
+            if cropped_file_folder:
+                ori_file_folder = cropped_file_folder
+            result1 , result2, suggestions = predict_init(ori_file_folder,str_time)
+
     return render(request,"index.html",locals())
