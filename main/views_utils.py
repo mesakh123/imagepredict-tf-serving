@@ -66,10 +66,8 @@ def image_save(im = None,str_time="default"):
 
     image = Image.open(io.BytesIO(im))
 
-    print("Image size : ",image.size)
     file_folder = os.path.join(MEDIA_DIR,str_time+'-ori.jpg')
     image_ori =  image.copy()
-    print("image_ori size : ",image_ori.size)
     image_ori = image_ori.convert("RGB")
     image_ori.save(file_folder)
 

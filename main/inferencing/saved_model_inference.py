@@ -47,7 +47,7 @@ def detect_mask_single_image_using_grpc(image,str_time):
     anchors = preprocess_obj.get_anchors(image_shape)
     anchors = np.broadcast_to(anchors, (images.shape[0],) + anchors.shape)
 
-    print("Start request")
+
 
     request.inputs[saved_model_config.INPUT_IMAGE].CopyFrom(
         tf.make_tensor_proto(molded_images, shape=molded_images.shape))
