@@ -63,26 +63,28 @@ def index(request):
         if 'myfile' in request.FILES:
             files = request.FILES.get('myfile').read()
             image = image_save(files,str_time)
-            opencv_image = np.array(image).copy()[:,:,::-1]
-            print("opencv_image.shape : ",opencv_image.shape)
+            opencv_image = np.array(image).copy()
             result = detect_mask_single_image_using_grpc(opencv_image,str_time)
 
             ori_file_folder = os.path.join(MEDIA_DIR,str_time+'.jpg')
             cropped_file_folder = None
             file_name= str_time+".jpg"
             if result:
-                predict_result = visualize.save_image(image, "test", result['rois'], result['mask'],
+                predict_result = visualize.save_image(opencv_image, None, result['rois'], result['mask'],
                     result['class'], result['scores'], class_names,scores_thresh=0.85)
                 if predict_result:
-                    print("predict_result : ",predict_result.shape)
                     cropped_file_folder =  os.path.join(MEDIA_DIR,str_time+'-cropped.jpg')
-                    bounding_box = result['rois']
-                    mask = result['mask']
-                    bounding_box,mask = process_bounding_mask(bounding_box,mask)
-                    x1,y1,x2,y2 = bounding_box
-                    opencv_image = opencv_image[y1:y2,x1:x2]
-                    cv2.imwrite(cropped_file_folder,opencv_image)
-                    cv2.imwrite(ori_file_folder,predict_result)
+                    print("rois : ",result['rois'].shape)
+                    bounding_box = result['rois'][0].copy()
+                    mask = result['mask'][...,0].copy()
+                    mask = 255.0*mask
+                    result['rois'][0],mask = process_bounding_mask(bounding_box,mask)
+                    x1,y1,x2,y2 = result['rois'][0]
+                    cropped_image = opencv_image[y1:y2,x1:x2].copy()[:,:,::-1]
+                    cv2.imwrite(cropped_file_folder,cropped_image)
+
+                    visualize.save_image(opencv_image, ori_file_folder, result['rois'], mask,
+                        result['class'], result['scores'], class_names,scores_thresh=0.85)
             if cropped_file_folder:
                 ori_file_folder = cropped_file_folder
             result1 , result2, suggestions = predict_init(ori_file_folder,str_time)

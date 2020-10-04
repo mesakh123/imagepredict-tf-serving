@@ -590,5 +590,7 @@ def save_image(image, image_name, boxes, masks, class_ids, scores, class_names, 
         font = ImageFont.truetype('arial.ttf', 15)
         draw.text((x1, y1), "%s %f" % (label, score), (255, 255, 255), font)
 
-    #masked_image.save(os.path.join(save_dir, '%s.jpg' % (image_name)))
+    #
+    if image_name:
+        masked_image.save(image_name)
     return masked_image

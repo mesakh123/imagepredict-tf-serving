@@ -72,17 +72,8 @@ def image_save(im = None,str_time="default"):
     image_ori.save(file_folder)
 
     width_resize = 224
-
-    #save original size
-    #file_folder = os.path.join(MEDIA_DIR,str_time+'-ori.jpg')
-    #image = image.convert("RGB")
-    #stats = image.save(file_folder)
-
-    #save resized size for caffe
-    wpercent = (width_resize/float(image.size[0]))
-    height_resize  = int(float(image.size[1])*float(wpercent))
     file_folder = os.path.join(MEDIA_DIR,str_time+'.jpg')
-    image = image.resize((width_resize,height_resize),Image.ANTIALIAS)
+    image = image.resize((width_resize,width_resize),Image.ANTIALIAS)
     image = image.convert("RGB")
     image.save(file_folder)
 
@@ -179,10 +170,10 @@ def process_bounding_mask(bounding_box,mask):
     old_y1 = bounding_box[1]
     old_x2 = bounding_box[2]
     old_y2 = bounding_box[3]
-    new_x1 = bounding_box[0]  = max(old_x1-50,0)#x1
-    new_y1 = bounding_box[1]  = max(old_y1-50,0)#y1
-    new_x2 = bounding_box[2]  = min(old_x2+50,224)#x2
-    new_y2 = bounding_box[3]  = min(old_y2+50,224)#y2
+    new_x1 = bounding_box[0]  = max(old_x1-35,0)#x1
+    new_y1 = bounding_box[1]  = max(old_y1-35,0)#y1
+    new_x2 = bounding_box[2]  = min(old_x2+45,224)#x2
+    new_y2 = bounding_box[3]  = min(old_y2+45,224)#y2
 
     new_length = new_y2-new_y1
     new_height = new_x2-new_x1
@@ -191,19 +182,17 @@ def process_bounding_mask(bounding_box,mask):
     old_length = old_y2-old_y1
     old_height = old_x2-old_x1
     old_area = old_length*old_height
-    scale = new_area/old_area
+    scale = min(new_area/old_area,2)
 
-
-    mask = 255.0*mask[...,0]
-    mask = np.float32(mask)
-    ret, thresh = cv2.threshold(mask, 0, 255, cv2.THRESH_BINARY)
+    ret, thresh = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)
     thresh = np.uint8(thresh)
     contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     cnt_scaled = scale_contour(contours[0], scale)
 
-    cv2.drawContours(mask, pts =[cnt_scaled], color=(255,255,255))
+    im_copy = mask.copy()
+    cv2.drawContours(im_copy, [cnt_scaled], 0, (255, 0, 0), 2)
+    cv2.fillPoly(im_copy, pts =[cnt_scaled], color=(255,255,255))
+    im_copy = im_copy[:,:,newaxis]
+    im_copy[im_copy >0]=True
 
-    mask = mask[:,:,newaxis]
-    mask[mask >0]=True
-
-    return bounding_box,mask
+    return bounding_box,im_copy
