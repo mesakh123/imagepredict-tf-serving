@@ -47,7 +47,7 @@ def detect_mask_single_image_using_grpc(image,str_time):
     anchors = preprocess_obj.get_anchors(image_shape)
     anchors = np.broadcast_to(anchors, (images.shape[0],) + anchors.shape)
 
-
+    print("Start request")
 
     request.inputs[saved_model_config.INPUT_IMAGE].CopyFrom(
         tf.make_tensor_proto(molded_images, shape=molded_images.shape))
@@ -58,8 +58,7 @@ def detect_mask_single_image_using_grpc(image,str_time):
 
     result = stub.Predict(request, 10.0)
     result_dict = preprocess_obj.result_to_dict(images, molded_images, windows, result)[0]
-    visualize.save_image(image, str_time, result_dict['rois'], result_dict['mask'],
-        result_dict['class'], result_dict['scores'], class_names,scores_thresh=0.85,save_dir='media')
+    visualize.save_image(image, str_time, result_dict['rois'], result_dict['mask'],result_dict['class'], result_dict['scores'], class_names,scores_thresh=0.85,save_dir='/home/user/myproject/imagepredict/media/')
     return result_dict
 
 

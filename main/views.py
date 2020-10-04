@@ -86,7 +86,6 @@ def image_save(im = None,str_time="default"):
     wpercent = (width_resize/float(image.size[0]))
     height_resize  = int(float(image.size[1])*float(wpercent))
     file_folder = os.path.join(MEDIA_DIR,str_time+'.jpg')
-    stats = image.save(file_folder)
     image = image.convert("RGB")
     stats = image.save(file_folder)
     print("stats ",stats)

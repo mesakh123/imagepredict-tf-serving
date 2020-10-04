@@ -23,7 +23,7 @@ from matplotlib.patches import Polygon
 import IPython.display
 
 # Root directory of the project
-ROOT_DIR = os.path.abspath("../")
+ROOT_DIR = os.path.abspath("..\\")
 
 # Import Mask RCNN
 sys.path.append(ROOT_DIR)  # To find local version of the library
@@ -521,6 +521,7 @@ def save_image(image, image_name, boxes, masks, class_ids, scores, class_names, 
                 mode = 3 , save mask with black background;
     """
     mode_list = [0, 1, 2, 3]
+    print("Start save image")
     assert mode in mode_list, "mode's value should in mode_list %s" % str(mode_list)
 
     if save_dir is None:
@@ -558,6 +559,7 @@ def save_image(image, image_name, boxes, masks, class_ids, scores, class_names, 
         print("\n*** No instances in image %s to draw *** \n" % (image_name))
         return
 
+    print("There is an instance")
     colors = random_colors(len(useful_mask_indices))
 
     if mode != 3:
@@ -577,7 +579,7 @@ def save_image(image, image_name, boxes, masks, class_ids, scores, class_names, 
 
     draw = ImageDraw.Draw(masked_image)
     colors = np.array(colors).astype(int) * 255
-
+    print("draw image")
     for index, value in enumerate(useful_mask_indices):
         class_id = class_ids[value]
         score = scores[value]
@@ -589,8 +591,12 @@ def save_image(image, image_name, boxes, masks, class_ids, scores, class_names, 
             draw.rectangle((x1, y1, x2, y2), outline=color)
 
         # Label
-        font = ImageFont.truetype('arial.ttf', 20)
+        print("Opening font file")
+        font = ImageFont.truetype('/home/user/myproject/imagepredict/main/inferencing/mrcnn/arial.ttf', 20)
         draw.text((x1, y1), "%s %f" % (label, score), font=font,fill=(0, 255, 255,255))
 
-    print("saved_image_path : ",os.path.join(save_dir, '%s.jpg' % (image_name)))
-    masked_image.save(os.path.join(save_dir, '%s.jpg' % (image_name)))
+    save_file = os.path.join(save_dir, '%s.jpg' % (image_name))
+    print("saved_image_path : ",save_file)
+    if os.path.exists(save_file):
+        os.remove(save_file)
+    masked_image.save(save_file)
