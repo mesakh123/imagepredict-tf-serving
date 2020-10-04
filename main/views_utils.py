@@ -65,11 +65,13 @@ def image_save(im = None,str_time="default"):
     """
 
     image = Image.open(io.BytesIO(im))
+
+    print("Image size : ",image.size)
     file_folder = os.path.join(MEDIA_DIR,str_time+'-ori.jpg')
     image_ori =  image.copy()
+    print("image_ori size : ",image_ori.size)
     image_ori = image_ori.convert("RGB")
-    stats = image_ori.save(file_folder)
-    print("Image ori ",stats)
+    image_ori.save(file_folder)
 
     width_resize = 224
 
@@ -82,12 +84,12 @@ def image_save(im = None,str_time="default"):
     wpercent = (width_resize/float(image.size[0]))
     height_resize  = int(float(image.size[1])*float(wpercent))
     file_folder = os.path.join(MEDIA_DIR,str_time+'.jpg')
+    image = image.resize((width_resize,height_resize),Image.ANTIALIAS)
     image = image.convert("RGB")
-    stats = image.save(file_folder)
-    print("Image 224 stats ",stats)
+    image.save(file_folder)
 
 
-    return stats,image
+    return image
 
 
 def predict(data_type = "",file=""):
@@ -175,14 +177,14 @@ def scale_contour(cnt, scale):
     return cnt_scaled
 def process_bounding_mask(bounding_box,mask):
 
-    old_x1 = bounding_box[0][0]
-    old_y1 = bounding_box[0][1]
-    old_x2 = bounding_box[0][2]
-    old_y2 = bounding_box[0][3]
-    new_x1 = bounding_box[0][0]  = max(old_x1-50,0)#x1
-    new_y1 = bounding_box[0][1]  = max(old_y1-50,0)#y1
-    new_x2 = bounding_box[0][2]  = min(old_x2+50,224)#x2
-    new_y2 = bounding_box[0][3]  = min(old_y2+50,224)#y2
+    old_x1 = bounding_box[0]
+    old_y1 = bounding_box[1]
+    old_x2 = bounding_box[2]
+    old_y2 = bounding_box[3]
+    new_x1 = bounding_box[0]  = max(old_x1-50,0)#x1
+    new_y1 = bounding_box[1]  = max(old_y1-50,0)#y1
+    new_x2 = bounding_box[2]  = min(old_x2+50,224)#x2
+    new_y2 = bounding_box[3]  = min(old_y2+50,224)#y2
 
     new_length = new_y2-new_y1
     new_height = new_x2-new_x1

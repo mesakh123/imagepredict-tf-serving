@@ -46,6 +46,7 @@ from .mrcnn import visualize
 
 from .inferencing.saved_model_inference import detect_mask_single_image_using_grpc
 
+class_names = ['BG', 'wound']
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -61,25 +62,27 @@ def index(request):
         str_time = randomString(8)
         if 'myfile' in request.FILES:
             files = request.FILES.get('myfile').read()
-            stats, image = image_save(files,str_time)
-            opencv_image = np.array(image).copy()
+            image = image_save(files,str_time)
+            opencv_image = np.array(image).copy()[:,:,::-1]
+            print("opencv_image.shape : ",opencv_image.shape)
             result = detect_mask_single_image_using_grpc(opencv_image,str_time)
 
             ori_file_folder = os.path.join(MEDIA_DIR,str_time+'.jpg')
             cropped_file_folder = None
             file_name= str_time+".jpg"
             if result:
-                cropped_file_folder =  os.path.join(MEDIA_DIR,str_time+'-cropped.jpg')
-
-                bounding_box = result['rois']
-                mask = r['mask'][...,0]
-                bounding_box,mask = process_bounding_mask(bounding_box,mask)
-                img_mrcnn = visualize.save_image(opencv_image, file_folder, bounding_box, mask,
-                                    result['class'], result['scores'], class_names,scores_thresh=0.85)
-                x1,y1,x2,y2 = bounding_box
-                opencv_image = opencv_image[y1:y2,x1:x2]
-                cv2.imwrite(cropped_file_folder,opencv_image)
-                cv2.imwrite(ori_file_folder,img_mrcnn)
+                predict_result = visualize.save_image(image, "test", result['rois'], result['mask'],
+                    result['class'], result['scores'], class_names,scores_thresh=0.85)
+                if predict_result:
+                    print("predict_result : ",predict_result.shape)
+                    cropped_file_folder =  os.path.join(MEDIA_DIR,str_time+'-cropped.jpg')
+                    bounding_box = result['rois']
+                    mask = result['mask']
+                    bounding_box,mask = process_bounding_mask(bounding_box,mask)
+                    x1,y1,x2,y2 = bounding_box
+                    opencv_image = opencv_image[y1:y2,x1:x2]
+                    cv2.imwrite(cropped_file_folder,opencv_image)
+                    cv2.imwrite(ori_file_folder,predict_result)
             if cropped_file_folder:
                 ori_file_folder = cropped_file_folder
             result1 , result2, suggestions = predict_init(ori_file_folder,str_time)
