@@ -175,10 +175,10 @@ def process_bounding_mask(bounding_box,mask):
     old_y1 = bounding_box[1]
     old_x2 = bounding_box[2]
     old_y2 = bounding_box[3]
-    new_x1 = bounding_box[0]  = max(old_x1-35,0)#x1
-    new_y1 = bounding_box[1]  = max(old_y1-35,0)#y1
-    new_x2 = bounding_box[2]  = min(old_x2+45,1024)#x2
-    new_y2 = bounding_box[3]  = min(old_y2+45,1024)#y2
+    new_x1 = bounding_box[0]  = max(old_x1-250,0)#x1
+    new_y1 = bounding_box[1]  = max(old_y1-250,0)#y1
+    new_x2 = bounding_box[2]  = min(old_x2+345,1024)#x2
+    new_y2 = bounding_box[3]  = min(old_y2+345,1024)#y2
 
     new_length = new_y2-new_y1
     new_height = new_x2-new_x1
