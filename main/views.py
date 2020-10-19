@@ -71,13 +71,13 @@ def index(request):
             cropped_file_folder = None
             file_name= str_time+".jpg"
             if result:
-                predict_result = visualize.save_image(opencv_image, None, result['rois'], result['mask'],
-                    result['class'], result['scores'], class_names,scores_thresh=0.85)
+                predict_result = visualize.save_image(image, "test", result['rois'], result['masks'],
+                    result['class_ids'], result['scores'], class_names,scores_thresh=0.85)
                 if predict_result:
                     cropped_file_folder =  os.path.join(MEDIA_DIR,str_time+'-cropped.jpg')
                     print("rois : ",result['rois'].shape)
                     bounding_box = result['rois'][0].copy()
-                    mask = result['mask'][...,0].copy()
+                    mask = result['masks'][...,0].copy()
                     mask = 255.0*mask
                     result['rois'][0],mask = process_bounding_mask(bounding_box,mask)
                     x1,y1,x2,y2 = result['rois'][0]
