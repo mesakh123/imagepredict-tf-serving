@@ -64,7 +64,7 @@ def index(request):
             files = request.FILES.get('myfile').read()
             image = image_save(files,str_time)
             opencv_image = np.array(image).copy()
-            result = detect_mask_single_image_local(opencv_image,str_time)[0]
+            result = detect_mask_single_image_local(opencv_image,str_time)
             #result = detect_mask_single_image_using_grpc(opencv_image,str_time)
 
             ori_file_folder = os.path.join(MEDIA_DIR,str_time+'.jpg')
