@@ -84,8 +84,6 @@ def index(request):
                     cropped_image = opencv_image[y1:y2,x1:x2].copy()[:,:,::-1]
                     cv2.imwrite(cropped_file_folder,cropped_image)
 
-                    visualize.save_image(opencv_image, ori_file_folder, result['rois'], mask,
-                        result['class'], result['scores'], class_names,scores_thresh=0.85)
             if cropped_file_folder:
                 ori_file_folder = cropped_file_folder
             result1 , result2, suggestions = predict_init(ori_file_folder,str_time)
