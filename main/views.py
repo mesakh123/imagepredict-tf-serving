@@ -62,8 +62,8 @@ def index(request):
         str_time = randomString(8)
         if 'myfile' in request.FILES:
             files = request.FILES.get('myfile').read()
-            image = image_save(files,str_time)
-            opencv_image = np.array(image).copy()
+            image_ori,image = image_save(files,str_time)
+            opencv_image = np.array(image_ori).copy()
             result = detect_mask_single_image_local(opencv_image,str_time)
             #result = detect_mask_single_image_using_grpc(opencv_image,str_time)
 
@@ -73,11 +73,10 @@ def index(request):
             if result:
                 for k,v in result.items():
                     result[k] = np.array(v)
-                predict_result = visualize.save_image(image, None, result['rois'], result['masks'],
+                predict_result = visualize.save_image(image_ori, ori_file_folder, result['rois'], result['masks'],
                     result['class_ids'], result['scores'], class_names,scores_thresh=0.85)
                 if predict_result:
                     cropped_file_folder =  os.path.join(MEDIA_DIR,str_time+'-cropped.jpg')
-                    print("rois : ",result['rois'].shape)
                     bounding_box = result['rois'][0].copy()
                     mask = result['masks'][...,0].copy()
                     mask = 255.0*mask

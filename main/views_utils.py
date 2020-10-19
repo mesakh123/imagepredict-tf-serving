@@ -68,6 +68,7 @@ def image_save(im = None,str_time="default"):
 
     file_folder = os.path.join(MEDIA_DIR,str_time+'-ori.jpg')
     image_ori =  image.copy()
+    image_ori = image_ori.resize((1024,1024),Image.ANTIALIAS)
     image_ori = image_ori.convert("RGB")
     image_ori.save(file_folder)
 
@@ -78,7 +79,7 @@ def image_save(im = None,str_time="default"):
     image.save(file_folder)
 
 
-    return image
+    return image_ori,image
 
 
 def predict(data_type = "",file=""):
@@ -176,8 +177,8 @@ def process_bounding_mask(bounding_box,mask):
     old_y2 = bounding_box[3]
     new_x1 = bounding_box[0]  = max(old_x1-35,0)#x1
     new_y1 = bounding_box[1]  = max(old_y1-35,0)#y1
-    new_x2 = bounding_box[2]  = min(old_x2+45,224)#x2
-    new_y2 = bounding_box[3]  = min(old_y2+45,224)#y2
+    new_x2 = bounding_box[2]  = min(old_x2+45,1024)#x2
+    new_y2 = bounding_box[3]  = min(old_y2+45,1024)#y2
 
     new_length = new_y2-new_y1
     new_height = new_x2-new_x1

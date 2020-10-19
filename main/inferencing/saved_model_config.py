@@ -8,8 +8,8 @@ class InferenceConfig(coco.CocoConfig):
     IMAGES_PER_GPU = 1
     DETECTION_MIN_CONFIDENCE = 0.9
     NUM_CLASSES = 1 + 1
-    IMAGE_MIN_DIM = 512
-    IMAGE_MAX_DIM = 512
+    IMAGE_MIN_DIM = 1024
+    IMAGE_MAX_DIM = 1024
     BACKBONE = 'resnet101'
 coco_config = InferenceConfig()
 
