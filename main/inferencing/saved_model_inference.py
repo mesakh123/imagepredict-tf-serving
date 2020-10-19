@@ -10,6 +10,12 @@ import json
 import skimage.io
 import time
 from .mrcnn import visualize
+from .mrcnn import model as modellib
+import sys,os
+import requests
+import base64
+import json
+
 
 class_names = ['BG', 'wound']
 
@@ -30,6 +36,17 @@ request.model_spec.signature_name = saved_model_config.SIGNATURE_NAME
 model_config = saved_model_config.MY_INFERENCE_CONFIG
 preprocess_obj = ForwardModel(model_config)
 
+
+
+
+def detect_mask_single_image_local(image,str_time):
+    url = 'http://203.145.218.191:9000/v1/models/mask_rcnn_shapes:predict'
+    #result = hand_detect_mask(image)
+    file_type = ".jpg"
+    retval, buffer = cv2.imencode("."+file_type, image)
+    im_encode = base64.b64encode(buffer)
+    result = requests.post(url, data=im_encode, timeout=600).json()
+    return result
 
 def detect_mask_single_image_using_grpc(image,str_time):
     images = np.expand_dims(image, axis=0)

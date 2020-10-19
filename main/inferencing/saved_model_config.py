@@ -10,6 +10,7 @@ class InferenceConfig(coco.CocoConfig):
     NUM_CLASSES = 1 + 1
     IMAGE_MIN_DIM = 512
     IMAGE_MAX_DIM = 512
+    BACKBONE = 'resnet101'
 coco_config = InferenceConfig()
 
 MY_INFERENCE_CONFIG = coco_config

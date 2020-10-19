@@ -73,12 +73,12 @@ def compute_backbone_shapes(config, image_shape):
 
     Returns:
         [N, (height, width)]. Where N is the number of stages
-
+    """
     if callable(config.BACKBONE):
         return config.COMPUTE_BACKBONE_SHAPE(image_shape)
-    """
+
     # Currently supports ResNet only
-    assert config.BACKBONE in ["resnet50", "resnet101","daknet53"]
+    assert config.BACKBONE in ["resnet50", "resnet101"]
     return np.array(
         [[int(math.ceil(image_shape[0] / stride)),
             int(math.ceil(image_shape[1] / stride))]
@@ -204,106 +204,6 @@ def resnet_graph(input_image, architecture, stage5=False, train_bn=True):
     else:
         C5 = None
     return [C1, C2, C3, C4, C5]
-
-
-############################################################
-#  Darknet Graph
-############################################################
-
-def conv2d_unit(x, filters, kernels,stage, strides=1,block_id=1, train_bn=False):
-    """Convolution Unit
-    This function defines a 2D convolution operation with BN and LeakyReLU.
-    # Arguments
-        x: Tensor, input tensor of conv layer.
-        filters: Integer, the dimensionality of the output space.
-        kernels: An integer or tuple/list of 2 integers, specifying the
-            width and height of the 2D convolution window.
-        strides: An integer or tuple/list of 2 integers,
-            specifying the strides of the convolution along the width and
-            height. Can be a single integer to specify the same value for
-            all spatial dimensions.
-    # Returns
-            Output tensor.
-    """
-    x = KL.Conv2D(filters, kernels,
-               padding='same',
-               strides=strides,
-               activation='linear',
-               kernel_regularizer=keras.regularizers.l2(5e-4),
-               name='conv{}'.format(block_id)
-               )(x)
-    x = BatchNorm(axis=channel_axis, name='conv{}_bn'.format(block_id))(x, training = train_bn)
-    x = KL.LeakyReLU(alpha=0.1, name='conv{}_relu'.format(block_id))(x)
-    return x
-
-def residual_block(inputs, filters,block_id=1, train_bn=False):
-    """Residual Block
-    This function defines a 2D convolution operation with BN and LeakyReLU.
-    # Arguments
-        x: Tensor, input tensor of residual block.
-        kernels: An integer or tuple/list of 2 integers, specifying the
-            width and height of the 2D convolution window.
-    # Returns
-        Output tensor.
-    """
-    channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
-    tchannel = K.int_shape(inputs)[channel_axis] * t
-
-    x = conv2d_unit(inputs, tchannel, (1, 1),block_id=block_id,train_bn=train_bn)
-    x = KL.Conv2D(2 * filters,  (3, 3),
-               padding='same',
-               strides=strides,
-               activation='linear',
-               kernel_regularizer=keras.regularizers.l2(5e-4),
-               name='conv_rb_{}'.format(block_id))(x)
-    x = BatchNorm(axis=channel_axis, name='conv_rb_{}_bn'.format(block_id))(x, training = train_bn)
-    x = KL.LeakyReLU(alpha=0.1, name='conv_rb_{}_relu'.format(block_id))(x)
-
-    x = KL.add([inputs, x],name='res{}'.format(block_id))
-    x = KL.Activation('linear',name='conv_rb_{}_linear'.format(block_id))(x)
-
-    return x
-
-def stack_residual_block(inputs, filters, n,block_id,train_bn):
-    """Stacked residual Block
-    """
-    x = residual_block(inputs, filters, block_id, train_bn)
-
-    for i in range(n - 1):
-        block_id+=1
-        x = residual_block(x, filters,block_id, train_bn)
-
-    return x
-
-
-def darknet53_graph(inputs, architecture, stage5=False, train_bn=True):
-    """Build a ResNet graph.
-        architecture: Can be resnet50 or resnet101
-        stage5: Boolean. If False, stage5 of the network is not created
-        train_bn: Boolean. Train or freeze Batch Norm layers
-    """
-
-    x = conv2d_unit(inputs, 32, (3, 3),block_id=0, train_bn=train_bn)
-
-    # Stage 1
-    x = conv2d_unit(x, 64, (3, 3), strides=2,block_id=1, train_bn=train_bn)
-    C1 = x = stack_residual_block(x, 32, n=1,block_id=2, train_bn=train_bn)
-
-    x = conv2d_unit(x, 128, (3, 3), strides=2,block_id=3, train_bn=train_bn)
-    C2 = x = stack_residual_block(x, 64, n=2,block_id=4, train_bn=train_bn)
-
-    x = conv2d_unit(x, 256, (3, 3), strides=2,block_id=6, train_bn=train_bn)
-    C3 = x = stack_residual_block(x, 128, n=8 ,block_id=7, train_bn=train_bn)
-
-    x = conv2d_unit(x, 512, (3, 3), strides=2,block_id=15, train_bn=train_bn)
-    C4 = x = stack_residual_block(x, 256, n=8, block_id=16, train_bn=train_bn)
-
-    x = conv2d_unit(x, 1024, (3, 3), strides=2,block_id=24, train_bn=train_bn)
-    C5 = x = stack_residual_block(x, 512, n=4,block_id=25, train_bn=train_bn)
-
-    return [C1,C2,C3,C4,C5]
-
-
 
 
 ############################################################
@@ -1082,103 +982,51 @@ def fpn_classifier_graph(rois, feature_maps, image_meta,
 
     return mrcnn_class_logits, mrcnn_probs, mrcnn_bbox
 
-def _timedistributed_residual_conv_block(inputs, filters,strides=(1, 1), block_id=1, train_bn=False):
-    """Similiar to the _depthwise_conv_block used in the Backbone,
-    but with each layer wrapped in a TimeDistributed layer,
-    used to build the computation graph of the mask head of the FPN.
-    """
-    channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
 
-    # Depthwise
-    x = KL.TimeDistributed(KL.DepthwiseConv2D(
-                    (3, 3),
-                    padding='same',
-                    depth_multiplier=1,
-                    strides=strides,
-                    use_bias=False),
-                    name='mrcnn_mask_conv_dw_{}'.format(block_id))(inputs)
-    x = KL.TimeDistributed(BatchNorm(axis=channel_axis),
-                    name='mrcnn_mask_conv_dw_{}_bn'.format(block_id))(x, training=train_bn)
-    x = KL.Activation(relu6, name='mrcnn_mask_conv_dw_{}_relu'.format(block_id))(x)
-    # Pointwise
-    x = KL.TimeDistributed(KL.Conv2D(pointwise_conv_filters,
-                    (1, 1),
-                    padding='same',
-                    use_bias=False,
-                    strides=(1, 1)),
-                    name='mrcnn_mask_conv_pw_{}'.format(block_id))(x)
-    x = KL.TimeDistributed(BatchNorm(
-                    axis=channel_axis),
-                    name='mrcnn_mask_conv_pw_{}_bn'.format(block_id))(x, training=train_bn)
-    return KL.Activation(relu6, name='mrcnn_mask_conv_pw_{}_relu'.format(block_id))(x)
-
-    channel_axis = 1 if K.image_data_format() == 'channels_first' else -1
-
-    x = KL.TimeDistributed(KL.Conv2D(
-               2 * filters,  (3, 3),
-               padding='same',
-               strides=strides,
-               activation='linear',
-               kernel_regularizer=keras.regularizers.l2(5e-4)),
-               name='conv_rb_{}'.format(block_id))(inputs)
-    x = KL.TimeDistributed(BatchNorm(axis=channel_axis, name='conv_rb_{}_bn'.format(block_id)))(x, training = train_bn)
-    x = KL.LeakyReLU(alpha=0.1, name='conv_rb_{}_relu'.format(block_id))(x)
-
-    x = KL.add([inputs, x],name='res{}'.format(block_id))
-    x = KL.Activation('linear',name='conv_rb_{}_linear'.format(block_id))(x)
-
-    return x
-
-def build_fpn_mask_graph(rois, feature_maps, image_meta, pool_size, num_classes, backbone, train_bn):
+def build_fpn_mask_graph(rois, feature_maps, image_meta,
+                         pool_size, num_classes, train_bn=True):
     """Builds the computation graph of the mask head of Feature Pyramid Network.
+
     rois: [batch, num_rois, (y1, x1, y2, x2)] Proposal boxes in normalized
           coordinates.
-    feature_maps: List of feature maps from diffent layers of the pyramid,
+    feature_maps: List of feature maps from different layers of the pyramid,
                   [P2, P3, P4, P5]. Each has a different resolution.
     image_meta: [batch, (meta data)] Image details. See compose_image_meta()
     pool_size: The width of the square feature map generated from ROI Pooling.
     num_classes: number of classes, which determines the depth of the results
-    train_bn: Boolean. Train or freeze Batch Norm layres
-    Returns: Masks [batch, roi_count, height, width, num_classes]
+    train_bn: Boolean. Train or freeze Batch Norm layers
+
+    Returns: Masks [batch, num_rois, MASK_POOL_SIZE, MASK_POOL_SIZE, NUM_CLASSES]
     """
-    assert backbone in ['resnet50','resnet101','mobilenetv1','mobilenetv2']
     # ROI Pooling
-    # Shape: [batch, boxes, pool_height, pool_width, channels]
+    # Shape: [batch, num_rois, MASK_POOL_SIZE, MASK_POOL_SIZE, channels]
     x = PyramidROIAlign([pool_size, pool_size],
                         name="roi_align_mask")([rois, image_meta] + feature_maps)
-    """
-    x = KL.TimeDistributed(KL.Conv2D(256, (3, 3), padding="same"),name="mrcnn_mask_conv1")(x)
-    x = KL.TimeDistributed(BatchNorm(),name='mrcnn_mask_bn1')(x, training=train_bn)
-    x = KL.Activation('relu')(x)
-    x = KL.TimeDistributed(KL.Conv2D(256, (3, 3), padding="same"),name="mrcnn_mask_conv2")(x)
-    x = KL.TimeDistributed(BatchNorm(),name='mrcnn_mask_bn2')(x, training=train_bn)
-    x = KL.Activation('relu')(x)
-    x = KL.TimeDistributed(KL.Conv2D(256, (3, 3), padding="same"),name="mrcnn_mask_conv3")(x)
-    x = KL.TimeDistributed(BatchNorm(),name='mrcnn_mask_bn3')(x, training=train_bn)
-    x = KL.Activation('relu')(x)
-    x = KL.TimeDistributed(KL.Conv2D(256, (3, 3), padding="same"),name="mrcnn_mask_conv4")(x)
-    x = KL.TimeDistributed(BatchNorm(),name='mrcnn_mask_bn4')(x, training=train_bn)
-    x = KL.Activation('relu')(x)
-    """
-    if backbone in ['resnet50','resnet101']:
-        x = KL.TimeDistributed(KL.Conv2D(256, (3, 3), padding="same"),name="mrcnn_mask_conv1")(x)
-        x = KL.TimeDistributed(BatchNorm(),name='mrcnn_mask_bn1')(x, training=train_bn)
-        x = KL.Activation('relu')(x)
-        x = KL.TimeDistributed(KL.Conv2D(256, (3, 3), padding="same"),name="mrcnn_mask_conv2")(x)
-        x = KL.TimeDistributed(BatchNorm(),name='mrcnn_mask_bn2')(x, training=train_bn)
-        x = KL.Activation('relu')(x)
-        x = KL.TimeDistributed(KL.Conv2D(256, (3, 3), padding="same"),name="mrcnn_mask_conv3")(x)
-        x = KL.TimeDistributed(BatchNorm(),name='mrcnn_mask_bn3')(x, training=train_bn)
-        x = KL.Activation('relu')(x)
-        x = KL.TimeDistributed(KL.Conv2D(256, (3, 3), padding="same"),name="mrcnn_mask_conv4")(x)
-        x = KL.TimeDistributed(BatchNorm(),name='mrcnn_mask_bn4')(x, training=train_bn)
-        x = KL.Activation('relu')(x)
 
-    if backbone in ['mobilenetv1','mobilenetv2']:
-        x = _timedistributed_depthwise_conv_block(x, 256, block_id = 1, train_bn = train_bn)
-        x = _timedistributed_depthwise_conv_block(x, 256, block_id = 2, train_bn = train_bn)
-        x = _timedistributed_depthwise_conv_block(x, 256, block_id = 3, train_bn = train_bn)
-        x = _timedistributed_depthwise_conv_block(x, 256, block_id = 4, train_bn = train_bn)
+    # Conv layers
+    x = KL.TimeDistributed(KL.Conv2D(256, (3, 3), padding="same"),
+                           name="mrcnn_mask_conv1")(x)
+    x = KL.TimeDistributed(BatchNorm(),
+                           name='mrcnn_mask_bn1')(x, training=train_bn)
+    x = KL.Activation('relu')(x)
+
+    x = KL.TimeDistributed(KL.Conv2D(256, (3, 3), padding="same"),
+                           name="mrcnn_mask_conv2")(x)
+    x = KL.TimeDistributed(BatchNorm(),
+                           name='mrcnn_mask_bn2')(x, training=train_bn)
+    x = KL.Activation('relu')(x)
+
+    x = KL.TimeDistributed(KL.Conv2D(256, (3, 3), padding="same"),
+                           name="mrcnn_mask_conv3")(x)
+    x = KL.TimeDistributed(BatchNorm(),
+                           name='mrcnn_mask_bn3')(x, training=train_bn)
+    x = KL.Activation('relu')(x)
+
+    x = KL.TimeDistributed(KL.Conv2D(256, (3, 3), padding="same"),
+                           name="mrcnn_mask_conv4")(x)
+    x = KL.TimeDistributed(BatchNorm(),
+                           name='mrcnn_mask_bn4')(x, training=train_bn)
+    x = KL.Activation('relu')(x)
 
     x = KL.TimeDistributed(KL.Conv2DTranspose(256, (2, 2), strides=2, activation="relu"),
                            name="mrcnn_mask_deconv")(x)
@@ -2042,11 +1890,12 @@ class MaskRCNN(object):
         # Bottom-up Layers
         # Returns a list of the last layers of each stage, 5 in total.
         # Don't create the thead (stage 5), so we pick the 4th item in the list.
-        if config.BACKBONE in ["resnet50", "resnet101"]:
+        if callable(config.BACKBONE):
+            _, C2, C3, C4, C5 = config.BACKBONE(input_image, stage5=True,
+                                                train_bn=config.TRAIN_BN)
+        else:
             _, C2, C3, C4, C5 = resnet_graph(input_image, config.BACKBONE,
                                              stage5=True, train_bn=config.TRAIN_BN)
-        elif config.BACKBONE in ["darknet53"]:
-            _, C2, C3, C4, C5 = darknet53_graph(input_image, config.BACKBONE, train_bn=config.TRAIN_BN)
         # Top-down Layers
         # TODO: add assert to varify feature map sizes match what's in config
         P5 = KL.Conv2D(config.TOP_DOWN_PYRAMID_SIZE, (1, 1), name='fpn_c5p5')(C5)
@@ -2460,27 +2309,13 @@ class MaskRCNN(object):
         layer_regex = {
             # all layers but the backbone
             "heads": r"(mrcnn\_.*)|(rpn\_.*)|(fpn\_.*)",
+            # From a specific Resnet stage and up
+            "3+": r"(res3.*)|(bn3.*)|(res4.*)|(bn4.*)|(res5.*)|(bn5.*)|(mrcnn\_.*)|(rpn\_.*)|(fpn\_.*)",
+            "4+": r"(res4.*)|(bn4.*)|(res5.*)|(bn5.*)|(mrcnn\_.*)|(rpn\_.*)|(fpn\_.*)",
+            "5+": r"(res5.*)|(bn5.*)|(mrcnn\_.*)|(rpn\_.*)|(fpn\_.*)",
             # All layers
             "all": ".*",
         }
-
-        if self.config.BACKBONE in ["resnet50", "resnet101"]:
-            # From a specific Resnet stage and up
-            stage_regex = { "3+": r"(res3.*)|(bn3.*)|(res4.*)|(bn4.*)|(res5.*)|(bn5.*)|(mrcnn\_.*)|(rpn\_.*)|(fpn\_.*)",
-                            "4+": r"(res4.*)|(bn4.*)|(res5.*)|(bn5.*)|(mrcnn\_.*)|(rpn\_.*)|(fpn\_.*)",
-                            "5+": r"(res5.*)|(bn5.*)|(mrcnn\_.*)|(rpn\_.*)|(fpn\_.*)" }
-
-        elif self.config.BACKBONE in ['darknet53']:
-            # From a specific darknet53 stage and up
-            stage_regex = { "3+": r"(conv.*14.*)|(conv.*15.*)|(conv.*16.*)|(conv.*17.*)|(conv.*18.*)|(conv.*19.*)|(conv.*20.*)|(conv.*21.*)|(conv.*22.*)|(conv.*23.*)|"
-                                + r"(conv.*24.*)|(conv.*25.*)|(conv.*26.*)|(conv.*27.*)|(conv.*28.*)|"
-                                + r"(mrcnn\_.*)|(rpn\_.*)|(fpn\_.*)",
-                            "4+": r"(conv.*23.*)|(conv.*24.*)|(conv.*25.*)|(conv.*26.*)|(conv.*27.*)|(conv.*28.*)|"
-                                + r"(mrcnn\_.*)|(rpn\_.*)|(fpn\_.*)",
-                            "5+": r"(conv.*28.*)|(mrcnn\_.*)|(rpn\_.*)|(fpn\_.*)" }
-
-        layer_regex.update(stage_regex)
-
         if layers in layer_regex.keys():
             layers = layer_regex[layers]
 
