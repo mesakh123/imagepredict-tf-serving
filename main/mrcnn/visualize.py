@@ -557,7 +557,7 @@ def save_image(image, image_name, boxes, masks, class_ids, scores, class_names, 
         return None
 
     colors = random_colors(len(useful_mask_indices))
-
+    image = np.asarray(image)
     if mode != 3:
         masked_image = image.astype(np.uint8).copy()
     else:
