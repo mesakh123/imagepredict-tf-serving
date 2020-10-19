@@ -70,7 +70,9 @@ def index(request):
             ori_file_folder = os.path.join(MEDIA_DIR,str_time+'.jpg')
             cropped_file_folder = None
             file_name= str_time+".jpg"
-            if result:
+            if result:                
+                for k,v in result.items():
+                    result[k] = np.array(v)
                 predict_result = visualize.save_image(image, "test", result['rois'], result['masks'],
                     result['class_ids'], result['scores'], class_names,scores_thresh=0.85)
                 if predict_result:
