@@ -128,9 +128,9 @@ def predict_init(file=None,str_time="default"):
     result1 = predict("infection",file)
     result2 = predict("necrotic",file)
     suggestions = ""
-    if result1 is "UNDETECTED":
+    if result1 == "UNDETECTED":
         result1 = "NO"
-    if result2 is "UNDETECTED":
+    if result2 == "UNDETECTED":
         result2 = "NONE"
     if result1 == "NO" and result2 == "NONE":
         suggestions = "目前此傷口沒有明顯的感染，壞死組織也很少，傷口屬於穩定恢復期。<br>建議可以使用親水性的現代敷料，或者是加速癒合的主動型敷料，按照產品指示的頻率做更換，如果傷口有滲液有變多或是變臭的情形，請再次使用本傷口判定系統，或者可以至大醫院整形外科門診就診。"
