@@ -66,14 +66,21 @@ def image_save(im = None,str_time="default"):
 
     image = Image.open(io.BytesIO(im))
 
+
     file_folder = os.path.join(MEDIA_DIR,str_time+'-ori.jpg')
     image_ori =  image.copy()
     image_ori = image_ori.resize((1024,1024),Image.ANTIALIAS)
     image_ori = image_ori.convert("RGB")
     image_ori.save(file_folder)
 
-    width_resize = 224
     file_folder = os.path.join(MEDIA_DIR,str_time+'.jpg')
+    image_ori =  image.copy()
+    image_ori = image_ori.resize((512,512),Image.ANTIALIAS)
+    image_ori = image_ori.convert("RGB")
+    image_ori.save(file_folder)
+
+    width_resize = 224
+    file_folder = os.path.join(MEDIA_DIR,str_time+'-cropped.jpg')
     image = image.resize((width_resize,width_resize),Image.ANTIALIAS)
     image = image.convert("RGB")
     image.save(file_folder)
@@ -187,7 +194,7 @@ def process_bounding_mask(bounding_box,mask):
     old_length = old_y2-old_y1
     old_height = old_x2-old_x1
     old_area = old_length*old_height
-    scale = min(new_area/old_area,2)
+    scale = min(new_area/old_area,4)
 
     ret, thresh = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)
     thresh = np.uint8(thresh)

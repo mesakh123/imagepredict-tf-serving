@@ -16,4 +16,4 @@ im_encode = base64.b64encode(buffer)
 my_img =im_encode
 x = requests.post(url, data=my_img, timeout=600)
 x = x.json()
-print(x)
+print(type(x))

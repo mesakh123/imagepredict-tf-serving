@@ -73,6 +73,7 @@ def index(request):
             if result:
                 for k,v in result.items():
                     result[k] = np.array(v)
+                    print(k)
                 predict_result = visualize.save_image(image_ori, ori_file_folder, result['rois'], result['masks'],
                     result['class_ids'], result['scores'], class_names,scores_thresh=0.85)
                 if predict_result:
