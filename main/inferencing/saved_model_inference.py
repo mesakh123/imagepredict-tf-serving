@@ -40,13 +40,14 @@ preprocess_obj = ForwardModel(model_config)
 
 
 def detect_mask_single_image_local(image,str_time):
-    url = 'http://203.145.218.191:9000/v1/models/mask_rcnn_shapes:predict'
+    #url = 'http://203.145.218.191:9000/v1/models/mask_rcnn_shapes:predict'
     #result = hand_detect_mask(image)
+    url = 'http://127.0.0.1:5000/v1/models/mask_rcnn_shapes:predict'
     file_type = ".jpg"
     retval, buffer = cv2.imencode("."+file_type, image)
     im_encode = base64.b64encode(buffer)
     result = requests.post(url, data=im_encode, timeout=600).json()
-    return result
+    return result['mrcnn'],result['unet']
 
 def detect_mask_single_image_using_grpc(image,str_time):
     images = np.expand_dims(image, axis=0)

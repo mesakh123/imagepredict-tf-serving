@@ -55,21 +55,31 @@ MEDIA_DIR = os.path.join(BASE_DIR,"media")
 #mu = np.load(os.path.join(BASE_DIR,r'imagenet/ilsvrc_2012_mean.npy'))
 #mu =  mu.mean(axis = 1).mean(axis = 1)
 
-
+def apply_mask(image, mask, color=(1,0,0), alpha=0.75):
+    """Apply the given mask to the image.
+    """
+    for c in range(3):
+        image[:, :, c] = np.where(mask == 1,
+                                  image[:, :, c] *
+                                  (1 - alpha) + alpha * color[c] * 255,
+                                  image[:, :, c])
+    return image
 
 def index(request):
     if request.method == "POST":
         str_time = randomString(8)
         if 'myfile' in request.FILES:
             files = request.FILES.get('myfile').read()
-            image_ori,image = image_save(files,str_time)
-            opencv_image = np.array(image_ori).copy()
-            result = detect_mask_single_image_local(opencv_image,str_time)
+            image_ori,image = image_save(files,str_time)#512 and 224
+            opencv_image = np.array(image_ori).copy()#512
+            result,result_unet = detect_mask_single_image_local(opencv_image,str_time)
             #result = detect_mask_single_image_using_grpc(opencv_image,str_time)
 
             ori_file_folder = os.path.join(MEDIA_DIR,str_time+'.jpg')
             cropped_file_folder = None
             file_name= str_time+".jpg"
+            file_name_ori = str_time+"-ori.jpg"
+            file_name_unet = None
             if result:
                 for k,v in result.items():
                     result[k] = np.array(v)
@@ -77,14 +87,22 @@ def index(request):
                 predict_result = visualize.save_image(image_ori, ori_file_folder, result['rois'], result['masks'],
                     result['class_ids'], result['scores'], class_names,scores_thresh=0.85)
                 if predict_result:
-                    cropped_file_folder =  os.path.join(MEDIA_DIR,str_time+'-cropped.jpg')
+                    cropped_file_folder =  os.path.join(MEDIA_DIR,str_time+'-224.jpg')
                     bounding_box = result['rois'][0].copy()
                     mask = result['masks'][...,0].copy()
                     mask = 255.0*mask
                     result['rois'][0],mask = process_bounding_mask(bounding_box,mask)
                     x1,y1,x2,y2 = result['rois'][0]
+                    print(x1,y1,x2,y2)
                     cropped_image = opencv_image[y1:y2,x1:x2].copy()[:,:,::-1]
                     cv2.imwrite(cropped_file_folder,cropped_image)
+
+            result_unet = np.array(result_unet)
+            if np.count_nonzero(result_unet):
+                file_name_unet = str_time+"-unet.jpg"
+                image = apply_mask(opencv_image[:,:,::-1],result_unet)
+                unet_file_folder =  os.path.join(MEDIA_DIR,file_name_unet)
+                cv2.imwrite(unet_file_folder,image)
 
             if cropped_file_folder:
                 ori_file_folder = cropped_file_folder

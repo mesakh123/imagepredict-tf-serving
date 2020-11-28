@@ -44,13 +44,30 @@
                 </div>
                 <div class="card-body text-center">
                   {% if file_name %}
-                  <img class="card-img-top" src="media/{{file_name}}" style="max-width:800px;max-height:800px;" alt="Card image cap">
+
+                  <table class="table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Mask Rcnn</th>
+                      <th scope="col">原始照片</th>
+                      <th scope="col">UNet</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><img class="card-img-top" src="media/{{file_name}}" style="max-width:200px;max-height:200px;" alt="Card image cap"></td>
+                      <td><img class="card-img-top" src="media/{{file_name_ori}}" style="max-width:200px;max-height:200px;" alt="Card image cap"></td>
+                      <td><img class="card-img-top" src="media/{{file_name_unet}}" style="max-width:200px;max-height:200px;" alt="Card image cap"></td>
+                    </tr>
+                  </tbody>
+                </table>
                   <div class="text-center">
                     <span> Infection : {{result1}} </span><br>
                     <span> Necrotic Tissue : {{result2}} </span><br>
 	                  <span> Suggestions : {{suggestions|safe}}</span>
                   </div>
                   {%endif%}
+
                   <input type="file" name="myfile" id="file-5" class="inputfile inputfile-4" data-multiple-caption="{count} files selected" accept=".png, .jpg, .jpeg" />
                   <label for="file-5">
                     <figure>

@@ -80,7 +80,7 @@ def image_save(im = None,str_time="default"):
     image_ori.save(file_folder)
 
     width_resize = 224
-    file_folder = os.path.join(MEDIA_DIR,str_time+'-cropped.jpg')
+    file_folder = os.path.join(MEDIA_DIR,str_time+'-224.jpg')
     image = image.resize((width_resize,width_resize),Image.ANTIALIAS)
     image = image.convert("RGB")
     image.save(file_folder)
@@ -178,6 +178,7 @@ def scale_contour(cnt, scale):
     return cnt_scaled
 def process_bounding_mask(bounding_box,mask):
 
+    """
     old_x1 = bounding_box[0]
     old_y1 = bounding_box[1]
     old_x2 = bounding_box[2]
@@ -206,5 +207,5 @@ def process_bounding_mask(bounding_box,mask):
     cv2.fillPoly(im_copy, pts =[cnt_scaled], color=(255,255,255))
     im_copy = im_copy[:,:,newaxis]
     im_copy[im_copy >0]=True
-
-    return bounding_box,im_copy
+    """
+    return bounding_box,mask
