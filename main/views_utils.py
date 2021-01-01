@@ -69,15 +69,14 @@ def image_save(im = None,str_time="default"):
 
     file_folder = os.path.join(MEDIA_DIR,str_time+'-ori.jpg')
     image_ori =  image.copy()
-    image_ori = image_ori.resize((1024,1024),Image.ANTIALIAS)
     image_ori = image_ori.convert("RGB")
     image_ori.save(file_folder)
 
     file_folder = os.path.join(MEDIA_DIR,str_time+'.jpg')
-    image_ori =  image.copy()
-    image_ori = image_ori.resize((512,512),Image.ANTIALIAS)
-    image_ori = image_ori.convert("RGB")
-    image_ori.save(file_folder)
+    image_512 =  image.copy()
+    image_512 = image_512.resize((512,512),Image.ANTIALIAS)
+    image_512 = image_512.convert("RGB")
+    image_512.save(file_folder)
 
     width_resize = 224
     file_folder = os.path.join(MEDIA_DIR,str_time+'-224.jpg')
@@ -86,7 +85,7 @@ def image_save(im = None,str_time="default"):
     image.save(file_folder)
 
 
-    return image_ori,image
+    return image_512,image_ori,image
 
 
 def predict(data_type = "",file=""):

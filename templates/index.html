@@ -48,16 +48,18 @@
                   <table class="table">
                   <thead>
                     <tr>
-                      <th scope="col">Mask Rcnn</th>
                       <th scope="col">原始照片</th>
                       <th scope="col">UNet</th>
+                      <th scope="col">Mask Rcnn 1</th>
+                      <th scope="col">Mask Rcnn 2</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td><img class="card-img-top" src="media/{{file_name}}" style="max-width:200px;max-height:200px;" alt="Card image cap"></td>
                       <td><img class="card-img-top" src="media/{{file_name_ori}}" style="max-width:200px;max-height:200px;" alt="Card image cap"></td>
                       <td><img class="card-img-top" src="media/{{file_name_unet}}" style="max-width:200px;max-height:200px;" alt="Card image cap"></td>
+                      <td><img class="card-img-top" src="media/{{file_name}}" style="max-width:200px;max-height:200px;" alt="Card image cap"></td>
+                      <td><img class="card-img-top" src="media/{{file_name_mirle}}" style="max-width:200px;max-height:200px;" alt="Card image cap"></td>
                     </tr>
                   </tbody>
                 </table>
@@ -90,7 +92,7 @@
 <div id="checking" style="display:none;position: fixed;top: 0;left: 0;width: 100%;height: 100%;background: #f4f4f4;z-index: 99;">
 <div class="text" style="position: absolute;top: 45%;left: 0;height: 100%;width: 100%;font-size: 18px;text-align: center;">
 處理中，請稍後<br><b style="color: red;">保持連線
-<div class="spinner" style="position: relative;top: 2%;left: 1%;">
+<div class="spinner" style="position: relative;top: 2%;left: -1%;">
   <div class="ball ball-1"></div>
   <div class="ball ball-2"></div>
   <div class="ball ball-3"></div>

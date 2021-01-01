@@ -39,15 +39,25 @@ preprocess_obj = ForwardModel(model_config)
 
 
 
-def detect_mask_single_image_local(image,str_time):
+def detect_mask_single_image_local(image_512,image_ori,str_time):
     url = 'http://203.145.218.191:9000/v1/models/mask_rcnn_shapes:predict'
     #result = hand_detect_mask(image)
     #url = 'http://127.0.0.1:5000/v1/models/mask_rcnn_shapes:predict'
     file_type = ".jpg"
-    retval, buffer = cv2.imencode("."+file_type, image)
+    retval, buffer = cv2.imencode("."+file_type, image_512)
     im_encode = base64.b64encode(buffer)
     result = requests.post(url, data=im_encode, timeout=600).json()
-    return result['mrcnn'],result['unet']
+
+    url_mirle = 'http://203.145.218.191:9090/v1/models/lio_wound_model:predict'
+    #result = hand_detect_mask(image)
+    #url = 'http://127.0.0.1:5000/v1/models/mask_rcnn_shapes:predict'
+    file_type = ".jpg"
+    image_ori = cv2.cvtColor(image_ori,cv2.COLOR_BGR2RGB)
+    retval, buffer = cv2.imencode("."+file_type, image_ori)
+    im_encode = base64.b64encode(buffer)
+    result_mirle = requests.post(url_mirle, data=im_encode, timeout=600).json()
+
+    return result['mrcnn'],result['unet'],result_mirle['mirle_result']
 
 def detect_mask_single_image_using_grpc(image,str_time):
     images = np.expand_dims(image, axis=0)
